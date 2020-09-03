@@ -89,11 +89,16 @@ class CPU:
             # update pc to point to next instruction
             if IR == LDI:
                 # load "immediate", store a value in a register, or "set this register to this value"
-                return
+                # register location is byte at pc + 1 (operand_a)
+                # value is byte at pc + 2 (operand_b)
+                self.reg[operand_a] = operand_b
+                self.pc += 3
 
             elif IR == PRN:
                 # prints the numeric value stored in a register
-                return
+                # register location is byte at pc + 1 (operand_a)
+                print(self.reg[operand_a])
+                self.pc += 2
 
             # exit the loop if a HLT instruction is encountered (no matter what comes next)
             elif IR == HLT:
