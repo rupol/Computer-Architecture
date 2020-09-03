@@ -8,8 +8,8 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.ram = []
-        self.reg = [0] * 8
+        self.ram = [0] * 256  # 256 bytes of memory
+        self.reg = [0] * 8  # 8 general=purpose registers
         self.pc = 0  # program counter, address of the currently executing instruction
         self.running = True
 
@@ -36,11 +36,11 @@ class CPU:
 
     def ram_read(self, MAR):
         # return MAR (address) MDR (value)
-        pass
+        return self.ram[MAR]
 
     def ram_write(self, MDR, MAR):
         # write MDR (value) to MAR (address)
-        pass
+        self.ram[MAR] = MDR
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
