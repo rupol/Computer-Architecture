@@ -2,6 +2,11 @@
 
 import sys
 
+# set instruction codes
+HLT = 0b00000001
+LDI = 0b10000010
+PRN = 0b01000111
+
 
 class CPU:
     """Main CPU class."""
@@ -73,10 +78,24 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        # read the memory address stored in register PC
-        # store in IR (instruction register - local variable)
-        # read bytes at pc + 1 and pc + 2 and store into operand_a and operand_b
-        # perform actions needed based on given opcode (if-elif statements)
-        # update pc to point to next instruction
-        # exit the loop if a HLT instruction is encountered (no matter what comes next)
-        pass
+        while self.running:
+            # read the memory address stored in register PC
+            # store in IR (instruction register - local variable)
+            IR = self.ram_read(self.pc)
+            # read bytes at pc + 1 and pc + 2 and store into operand_a and operand_b
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+            # perform actions needed based on given opcode (if-elif statements)
+            # update pc to point to next instruction
+            if IR == LDI:
+                # load "immediate", store a value in a register, or "set this register to this value"
+                return
+
+            elif IR == PRN:
+                # prints the numeric value stored in a register
+                return
+
+            # exit the loop if a HLT instruction is encountered (no matter what comes next)
+            elif IR == HLT:
+                self.running = False
+                self.pc += 1
