@@ -2,11 +2,6 @@
 
 import sys
 
-# set instruction codes
-HLT = 0b00000001
-LDI = 0b10000010
-PRN = 0b01000111
-
 
 class CPU:
     """Main CPU class."""
@@ -14,30 +9,30 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.ram = [0] * 256  # 256 bytes of memory
-        self.reg = [0] * 8  # 8 general=purpose registers
+        self.reg = [0] * 8  # 8 general-purpose registers
         self.pc = 0  # program counter, address of the currently executing instruction
         self.running = True
+        self.opcode = {
+            # set instruction codes
+            'HLT': 0b00000001,
+            'LDI': 0b10000010,
+            'PRN': 0b01000111
+        }
 
     def load(self):
         """Load a program into memory."""
-
         address = 0
+        filename = sys.argv[1]
 
-        # For now, we've just hardcoded a program:
-
-        program = [
-            # From print8.ls8
-            0b10000010,  # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111,  # PRN R0
-            0b00000000,
-            0b00000001,  # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        with open(filename)as f:
+            for line in f:
+                line = line.split("#")
+                opcode = line[0].strip()
+                if opcode == "":
+                    continue
+                num = int(opcode, 2)
+                self.ram_write(num, address)
+                address += 1
 
     def ram_read(self, MAR):
         # return MAR (address) MDR (value)
@@ -87,20 +82,32 @@ class CPU:
             operand_b = self.ram_read(self.pc + 2)
             # perform actions needed based on given opcode (if-elif statements)
             # update pc to point to next instruction
-            if IR == LDI:
+            if IR == self.opcode['LDI']:
                 # load "immediate", store a value in a register, or "set this register to this value"
                 # register location is byte at pc + 1 (operand_a)
                 # value is byte at pc + 2 (operand_b)
                 self.reg[operand_a] = operand_b
                 self.pc += 3
 
-            elif IR == PRN:
+            elif IR == self.opcode['PRN']:
                 # prints the numeric value stored in a register
                 # register location is byte at pc + 1 (operand_a)
                 print(self.reg[operand_a])
                 self.pc += 2
 
             # exit the loop if a HLT instruction is encountered (no matter what comes next)
-            elif IR == HLT:
+            elif IR == self.opcode['HLT']:
                 self.running = False
                 self.pc += 1
+
+
+# NOTES
+# to optimize, can look at each bit to categorize
+# if first two bits == 1, operand_a only
+# if first two bits == 2, operand_a and operand_b
+# if third bit is a 1, let the ALU function handle the IR
+
+cpu = CPU()
+
+cpu.load()
+cpu.run()
