@@ -16,7 +16,8 @@ class CPU:
             # set instruction codes
             'HLT': 0b00000001,
             'LDI': 0b10000010,
-            'PRN': 0b01000111
+            'PRN': 0b01000111,
+            'MUL': 0b10100010
         }
 
     def load(self):
@@ -47,7 +48,8 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        # elif op == "SUB": etc
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -82,7 +84,13 @@ class CPU:
             operand_b = self.ram_read(self.pc + 2)
             # perform actions needed based on given opcode (if-elif statements)
             # update pc to point to next instruction
-            if IR == self.opcode['LDI']:
+
+            # exit the loop if a HLT instruction is encountered (no matter what comes next)
+            if IR == self.opcode['HLT']:
+                self.running = False
+                self.pc += 1
+
+            elif IR == self.opcode['LDI']:
                 # load "immediate", store a value in a register, or "set this register to this value"
                 # register location is byte at pc + 1 (operand_a)
                 # value is byte at pc + 2 (operand_b)
@@ -95,18 +103,15 @@ class CPU:
                 print(self.reg[operand_a])
                 self.pc += 2
 
-            # exit the loop if a HLT instruction is encountered (no matter what comes next)
-            elif IR == self.opcode['HLT']:
-                self.running = False
-                self.pc += 1
+            elif IR == self.opcode['MUL']:
+                self.alu('MUL', operand_a, operand_b)
+                self.pc += 3
 
-
-# NOTES
-# to optimize, can look at each bit to categorize
-# if first two bits == 1, operand_a only
-# if first two bits == 2, operand_a and operand_b
-# if third bit is a 1, let the ALU function handle the IR
-
+                # NOTES
+                # to optimize, can look at each bit to categorize
+                # if first two bits == 1, operand_a only
+                # if first two bits == 2, operand_a and operand_b
+                # if third bit is a 1, let the ALU function handle the IR
 cpu = CPU()
 
 cpu.load()
