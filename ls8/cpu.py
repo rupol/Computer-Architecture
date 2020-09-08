@@ -10,6 +10,7 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0] * 256  # 256 bytes of memory
         self.reg = [0] * 8  # 8 general-purpose registers
+        self.reg[7] = 244  # stack pointer, set to F4 on initialization
         self.pc = 0  # program counter, address of the currently executing instruction
         self.running = True
         self.opcode = {
@@ -17,7 +18,9 @@ class CPU:
             'HLT': 0b00000001,
             'LDI': 0b10000010,
             'PRN': 0b01000111,
-            'MUL': 0b10100010
+            'MUL': 0b10100010,
+            'PUSH': 0b01000101,
+            'POP': 0b01000110
         }
 
     def load(self):
@@ -82,9 +85,9 @@ class CPU:
             # read bytes at pc + 1 and pc + 2 and store into operand_a and operand_b
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
+
             # perform actions needed based on given opcode (if-elif statements)
             # update pc to point to next instruction
-
             # exit the loop if a HLT instruction is encountered (no matter what comes next)
             if IR == self.opcode['HLT']:
                 self.running = False
@@ -106,6 +109,24 @@ class CPU:
             elif IR == self.opcode['MUL']:
                 self.alu('MUL', operand_a, operand_b)
                 self.pc += 3
+
+            elif IR == self.opcode['PUSH']:
+                # decrement the SP
+                self.reg[7] -= 1
+                # copy the value in the given register to the address pointed to by SP
+                given_register = self.ram[self.pc + 1]
+                value_in_register = self.reg[given_register]
+                self.ram[self.reg[7]] = value_in_register
+                self.pc += 2
+
+            elif IR == self.opcode['POP']:
+                # copy the value from the address pointed to by SP to the given register
+                given_register = self.ram[self.pc + 1]
+                value_from_memory = self.ram[self.reg[7]]
+                self.reg[given_register] = value_from_memory
+                # increment the SP
+                self.reg[7] += 1
+                self.pc += 2
 
                 # NOTES
                 # to optimize, can look at each bit to categorize
