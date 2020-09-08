@@ -10,7 +10,8 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0] * 256  # 256 bytes of memory
         self.reg = [0] * 8  # 8 general-purpose registers
-        self.reg[7] = 244  # stack pointer, set to F4 on initialization
+        self.sp = 244  # stack pointer, set to F4 on initialization
+        self.reg[7] = self.sp
         self.pc = 0  # program counter, address of the currently executing instruction
         self.running = True
         self.opcode = {
@@ -112,21 +113,19 @@ class CPU:
 
             elif IR == self.opcode['PUSH']:
                 # decrement the SP
-                self.reg[7] -= 1
+                self.sp -= 1
                 # copy the value in the given register to the address pointed to by SP
-                given_register = self.ram[self.pc + 1]
-                value_in_register = self.reg[given_register]
-                self.ram[self.reg[7]] = value_in_register
+                self.ram_write(self.reg[operand_a], self.sp)
                 self.pc += 2
 
             elif IR == self.opcode['POP']:
                 # copy the value from the address pointed to by SP to the given register
-                given_register = self.ram[self.pc + 1]
-                value_from_memory = self.ram[self.reg[7]]
-                self.reg[given_register] = value_from_memory
+                value = self.ram_read(self.sp)
+                self.reg[operand_a] = value
                 # increment the SP
-                self.reg[7] += 1
+                self.sp += 1
                 self.pc += 2
+
 
                 # NOTES
                 # to optimize, can look at each bit to categorize
