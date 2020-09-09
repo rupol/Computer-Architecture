@@ -19,7 +19,9 @@ JMP = 0b01010100
 JNE = 0b01010110
 LD = 0b10000011
 LDI = 0b10000010
+MOD = 0b10100100
 MUL = 0b10100010
+NOT = 0b01101001
 OR = 0b10101010
 POP = 0b01000110
 PRA = 0b01001000
@@ -27,6 +29,7 @@ PRN = 0b01000111
 PUSH = 0b01000101
 RET = 0b00010001
 SHL = 0b10101100
+SHR = 0b10101101
 ST = 0b10000100
 SUB = 0b10100001
 XOR = 0b10101011
@@ -44,14 +47,9 @@ class CPU:
         self.pc = 0  # program counter, address of the currently executing instruction
         self.running = True
         self.bt = {  # branch table
-            # ADD: self.op_add,
-            # AND: self.op_and,
             # CALL: self.op_call,
             # CMP: self.op_cmp,
-            # DEC: self.op_dec,
-            # DIV: self.op_div,
             HLT: self.op_hlt,
-            # INC: self.op_inc,
             # IRET: self.op_iret,
             # JEQ: self.op_jeq,
             # JLE: self.op_jle,
@@ -60,17 +58,12 @@ class CPU:
             # JNE: self.op_jne,
             # LD: self.op_ld,
             LDI: self.op_ldi,
-            # MUL: self.op_mul,
-            # OR: self.op_or,
             POP: self.op_pop,
             # PRA: self.op_pra,
             PRN: self.op_prn,
             PUSH: self.op_push,
             # RET: self.op_ret,
-            # SHL: self.op_shl,
             # ST: self.op_st,
-            # SUB: self.op_sub,
-            # XOR: self.op_xor,
         }
 
     def load(self):
@@ -112,13 +105,46 @@ class CPU:
         # write MDR (value) to MAR (address)
         self.ram[MAR] = MDR
 
+    # alu operations (arithmetic and logic operators)
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
         if op == ADD:
             self.reg[reg_a] += self.reg[reg_b]
+        elif op == AND:
+            self.reg[reg_a] &= self.reg[reg_b]
+        elif op == DEC:
+            self.reg[reg_a] -= 1
+        elif op == DIV:
+            if reg_b == 0:
+                print('ERROR: cannot divide by 0')
+                self.running = 0
+                sys.exit(1)
+            else:
+                self.reg[reg_a] /= self.reg[reg_b]
+        elif op == INC:
+            self.reg[reg_a] += 1
+        elif op == MOD:
+            if reg_b == 0:
+                print('ERROR: cannot divide by 0')
+                self.running = 0
+                sys.exit(1)
+            else:
+                self.reg[reg_a] %= self.reg[reg_b]
         elif op == MUL:
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == NOT:
+            self.reg[reg_a] != self.reg[reg_b]
+        elif op == OR:
+            self.reg[reg_a] |= self.reg[reg_b]
+        elif op == SHL:
+            self.reg[reg_a] <<= self.reg[reg_b]
+        elif op == SHR:
+            self.reg[reg_a] >>= self.reg[reg_b]
+        elif op == SUB:
+            self.reg[reg_a] -= self.reg[reg_b]
+        elif op == XOR:
+            self.reg[reg_a] ^= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
