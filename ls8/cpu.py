@@ -99,40 +99,35 @@ class CPU:
             # read the memory address stored in register PC
             # store in IR (instruction register - local variable)
             IR = self.ram_read(self.pc)
+
             # read bytes at pc + 1 and pc + 2 and store into operand_a and operand_b
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
 
             # perform actions needed based on given opcode (if-elif statements)
-            # update pc to point to next instruction
             # exit the loop if a HLT instruction is encountered (no matter what comes next)
             if IR == self.opcode['HLT']:
                 self.running = False
-                self.pc += 1
 
             elif IR == self.opcode['LDI']:
                 # load "immediate", store a value in a register, or "set this register to this value"
                 # register location is byte at pc + 1 (operand_a)
                 # value is byte at pc + 2 (operand_b)
                 self.reg[operand_a] = operand_b
-                self.pc += 3
 
             elif IR == self.opcode['PRN']:
                 # prints the numeric value stored in a register
                 # register location is byte at pc + 1 (operand_a)
                 print(self.reg[operand_a])
-                self.pc += 2
 
             elif IR == self.opcode['MUL']:
                 self.alu('MUL', operand_a, operand_b)
-                self.pc += 3
 
             elif IR == self.opcode['PUSH']:
                 # decrement the SP
                 self.sp -= 1
                 # copy the value in the given register to the address pointed to by SP
                 self.ram_write(self.reg[operand_a], self.sp)
-                self.pc += 2
 
             elif IR == self.opcode['POP']:
                 # copy the value from the address pointed to by SP to the given register
@@ -140,14 +135,14 @@ class CPU:
                 self.reg[operand_a] = value
                 # increment the SP
                 self.sp += 1
-                self.pc += 2
 
+            # determine number of operands
+            num_operands = IR >> 6
+            # update pc to point to next instruction
+            self.pc += num_operands + 1
 
-                # NOTES
-                # to optimize, can look at each bit to categorize
-                # if first two bits == 1, operand_a only
-                # if first two bits == 2, operand_a and operand_b
-                # if third bit is a 1, let the ALU function handle the IR
+            # NOTES
+            # if third bit is a 1, let the ALU function handle the IR
 cpu = CPU()
 
 cpu.load()
