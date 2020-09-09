@@ -27,17 +27,33 @@ class CPU:
     def load(self):
         """Load a program into memory."""
         address = 0
+
+        # check for proper number of command line arguments
+        if len(sys.argv) != 2:
+            print('Usage: cpy.py filename')
+            sys.exit(1)
+
         filename = sys.argv[1]
 
-        with open(filename)as f:
-            for line in f:
-                line = line.split("#")
-                opcode = line[0].strip()
-                if opcode == "":
-                    continue
-                num = int(opcode, 2)
-                self.ram_write(num, address)
-                address += 1
+        # open a file and load into memory
+        try:
+            with open(filename)as f:
+                for line in f:
+                    # split on # symbol and remove comments
+                    line = line.split("#")
+                    opcode = line[0].strip()
+
+                    # remove empty lines
+                    if opcode == "":
+                        continue
+
+                    num = int(opcode, 2)
+                    self.ram_write(num, address)
+                    address += 1
+        # if file doesn't exist
+        except FileNotFoundError:
+            print(f'{filename} file not found')
+            sys.exit(2)
 
     def ram_read(self, MAR):
         # return MAR (address) MDR (value)
