@@ -20,6 +20,7 @@ class CPU:
             'LDI': 0b10000010,
             'PRN': 0b01000111,
             'MUL': 0b10100010,
+            'ADD': 0b10100000,
             'PUSH': 0b01000101,
             'POP': 0b01000110
         }
@@ -66,9 +67,9 @@ class CPU:
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
-        if op == "ADD":
+        if op == self.opcode['ADD']:
             self.reg[reg_a] += self.reg[reg_b]
-        elif op == "MUL":
+        elif op == self.opcode['MUL']:
             self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
@@ -104,10 +105,17 @@ class CPU:
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
 
+            # determine if IR is an ALU operation
+            isALU = (IR >> 5) & 0b00000001
+
             # perform actions needed based on given opcode (if-elif statements)
             # exit the loop if a HLT instruction is encountered (no matter what comes next)
             if IR == self.opcode['HLT']:
                 self.running = False
+
+            # dispatch ALU operations to alu function
+            elif isALU == 1:
+                self.alu(IR, operand_a, operand_b)
 
             elif IR == self.opcode['LDI']:
                 # load "immediate", store a value in a register, or "set this register to this value"
@@ -119,9 +127,6 @@ class CPU:
                 # prints the numeric value stored in a register
                 # register location is byte at pc + 1 (operand_a)
                 print(self.reg[operand_a])
-
-            elif IR == self.opcode['MUL']:
-                self.alu('MUL', operand_a, operand_b)
 
             elif IR == self.opcode['PUSH']:
                 # decrement the SP
@@ -141,8 +146,7 @@ class CPU:
             # update pc to point to next instruction
             self.pc += num_operands + 1
 
-            # NOTES
-            # if third bit is a 1, let the ALU function handle the IR
+
 cpu = CPU()
 
 cpu.load()
