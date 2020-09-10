@@ -170,14 +170,13 @@ class CPU:
 
     # OP functions
     def op_call(self, operand_a, operand_b):
-        given_register = self.ram[self.pc + 1]
-        # push the return address onto the stack
+        # push the address of the instruction directly after CALL (pc + 2)
         # decrement the SP
         self.sp -= 1
         # write the return address to memory at the SP location
-        self.ram[self.sp] = self.pc + 2
-        # set PC to value in given register
-        self.pc = self.reg[given_register]
+        self.ram_write(self.pc + 2, self.sp)
+        # set PC to the address stored in the given register
+        self.pc = self.reg[self.ram[operand_a]]
 
     def op_hlt(self, operand_a, operand_b):
         # exit the loop (no matter what comes next)
@@ -208,9 +207,9 @@ class CPU:
         self.ram_write(self.reg[operand_a], self.sp)
 
     def op_ret(self, operand_a, operand_b):
-        # set PC to value that is at the top of the stack
-        self.pc = self.ram[self.sp]
-        # pop from the stack
+        # pop the value from the top of the stack and store it in the PC
+        self.pc = self.ram_read(self.sp)
+        # increment the SP
         self.sp += 1
 
     def run(self):
