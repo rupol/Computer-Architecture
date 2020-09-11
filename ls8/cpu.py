@@ -176,11 +176,15 @@ class CPU:
         # write the return address to memory at the SP location
         self.ram_write(self.pc + 2, self.sp)
         # set PC to the address stored in the given register
-        self.pc = self.reg[self.ram[operand_a]]
+        self.pc = self.reg[operand_a]
 
     def op_hlt(self, operand_a, operand_b):
         # exit the loop (no matter what comes next)
         self.running = False
+
+    def op_jmp(self, operand_a, operand_b):
+        # set the PC to the address stored in the given register
+        self.pc = self.reg[operand_a]
 
     def op_ldi(self, operand_a, operand_b):
         # load "immediate", store a value in a register, or "set this register to this value"
