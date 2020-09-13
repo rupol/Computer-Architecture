@@ -198,7 +198,7 @@ class CPU:
         equalFL = self.fl & 0b00000001
         if equalFL == 1:
             # set the PC to the address stored in the given register
-            self.pc = self.reg[operand_a]
+            self.op_jmp(operand_a, operand_b)
         else:
             self.pc += 2
 
@@ -211,7 +211,7 @@ class CPU:
         equalFL = self.fl & 0b00000001
         if equalFL == 0:
             # set the PC to the address stored in the given register
-            self.pc = self.reg[operand_a]
+            self.op_jmp(operand_a, operand_b)
         else:
             self.pc += 2
 
