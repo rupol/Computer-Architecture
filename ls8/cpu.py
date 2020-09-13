@@ -113,6 +113,17 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == AND:
             self.reg[reg_a] &= self.reg[reg_b]
+        elif op == CMP:
+            # Compare the values in two registers. (FL = 00000LGE)
+            # If they are equal, set the Equal E flag to 1, otherwise set it to 0.
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.fl = 0b00000001
+            # If registerA is less than registerB, set the Less-than L flag to 1, otherwise set it to 0.
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                self.fl = 0b00000100
+            # If registerA is greater than registerB, set the Greater-than G flag to 1, otherwise set it to 0.
+            else:
+                self.fl = 0b00000010
         elif op == DEC:
             self.reg[reg_a] -= 1
         elif op == DIV:
