@@ -51,11 +51,11 @@ class CPU:
             CALL: self.op_call,
             HLT: self.op_hlt,
             # IRET: self.op_iret,
-            # JEQ: self.op_jeq,
+            JEQ: self.op_jeq,
             # JLE: self.op_jle,
             # JLT: self.op_jlt,
-            # JMP: self.op_jmp,
-            # JNE: self.op_jne,
+            JMP: self.op_jmp,
+            JNE: self.op_jne,
             # LD: self.op_ld,
             LDI: self.op_ldi,
             POP: self.op_pop,
@@ -193,9 +193,27 @@ class CPU:
         # exit the loop (no matter what comes next)
         self.running = False
 
+    def op_jeq(self, operand_a, operand_b):
+        # If equal flag is set (true), jump to the address stored in the given register.
+        equalFL = self.fl & 0b00000001
+        if equalFL == 1:
+            # set the PC to the address stored in the given register
+            self.pc = self.reg[operand_a]
+        else:
+            self.pc += 2
+
     def op_jmp(self, operand_a, operand_b):
         # set the PC to the address stored in the given register
         self.pc = self.reg[operand_a]
+
+    def op_jne(self, operand_a, operand_b):
+        # If E flag is clear (false, 0), jump to the address stored in the given register.
+        equalFL = self.fl & 0b00000001
+        if equalFL == 0:
+            # set the PC to the address stored in the given register
+            self.pc = self.reg[operand_a]
+        else:
+            self.pc += 2
 
     def op_ldi(self, operand_a, operand_b):
         # load "immediate", store a value in a register, or "set this register to this value"
