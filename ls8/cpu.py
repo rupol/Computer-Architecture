@@ -45,10 +45,10 @@ class CPU:
         self.sp = 244  # stack pointer, set to F4 on initialization
         self.reg[7] = self.sp
         self.pc = 0  # program counter, address of the currently executing instruction
+        self.fl = 0b00000000  # 00000LGE
         self.running = True
         self.bt = {  # branch table
             CALL: self.op_call,
-            # CMP: self.op_cmp,
             HLT: self.op_hlt,
             # IRET: self.op_iret,
             # JEQ: self.op_jeq,
@@ -156,7 +156,7 @@ class CPU:
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            # self.fl,
+            self.fl,
             # self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
