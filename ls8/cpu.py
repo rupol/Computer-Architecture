@@ -47,7 +47,7 @@ class CPU:
         self.pc = 0  # program counter, address of the currently executing instruction
         self.running = True
         self.bt = {  # branch table
-            # CALL: self.op_call,
+            CALL: self.op_call,
             # CMP: self.op_cmp,
             HLT: self.op_hlt,
             # IRET: self.op_iret,
@@ -62,7 +62,7 @@ class CPU:
             # PRA: self.op_pra,
             PRN: self.op_prn,
             PUSH: self.op_push,
-            # RET: self.op_ret,
+            RET: self.op_ret,
             # ST: self.op_st,
         }
 
@@ -169,9 +169,22 @@ class CPU:
         print()
 
     # OP functions
+    def op_call(self, operand_a, operand_b):
+        # push the address of the instruction directly after CALL (pc + 2)
+        # decrement the SP
+        self.sp -= 1
+        # write the return address to memory at the SP location
+        self.ram_write(self.pc + 2, self.sp)
+        # set PC to the address stored in the given register
+        self.pc = self.reg[operand_a]
+
     def op_hlt(self, operand_a, operand_b):
         # exit the loop (no matter what comes next)
         self.running = False
+
+    def op_jmp(self, operand_a, operand_b):
+        # set the PC to the address stored in the given register
+        self.pc = self.reg[operand_a]
 
     def op_ldi(self, operand_a, operand_b):
         # load "immediate", store a value in a register, or "set this register to this value"
@@ -197,6 +210,12 @@ class CPU:
         # copy the value in the given register to the address pointed to by SP
         self.ram_write(self.reg[operand_a], self.sp)
 
+    def op_ret(self, operand_a, operand_b):
+        # pop the value from the top of the stack and store it in the PC
+        self.pc = self.ram_read(self.sp)
+        # increment the SP
+        self.sp += 1
+
     def run(self):
         """Run the CPU."""
         while self.running:
@@ -220,10 +239,13 @@ class CPU:
                 if IR in self.bt:
                     self.bt[IR](operand_a, operand_b)
 
-            # determine number of operands
-            num_operands = IR >> 6
-            # update pc to point to next instruction
-            self.pc += num_operands + 1
+            # update pc to point to next instruction (if the instruction doesn't set the PC)
+            setsPC = (IR >> 4) & 0b00000001
+            if setsPC == 0:
+                # determine number of operands
+                num_operands = IR >> 6
+                # update pc to point to next instruction
+                self.pc += num_operands + 1
 
 
 cpu = CPU()
