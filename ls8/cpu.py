@@ -45,17 +45,17 @@ class CPU:
         self.sp = 244  # stack pointer, set to F4 on initialization
         self.reg[7] = self.sp
         self.pc = 0  # program counter, address of the currently executing instruction
+        self.fl = 0b00000000  # 00000LGE
         self.running = True
         self.bt = {  # branch table
             CALL: self.op_call,
-            # CMP: self.op_cmp,
             HLT: self.op_hlt,
             # IRET: self.op_iret,
-            # JEQ: self.op_jeq,
+            JEQ: self.op_jeq,
             # JLE: self.op_jle,
             # JLT: self.op_jlt,
-            # JMP: self.op_jmp,
-            # JNE: self.op_jne,
+            JMP: self.op_jmp,
+            JNE: self.op_jne,
             # LD: self.op_ld,
             LDI: self.op_ldi,
             POP: self.op_pop,
@@ -113,6 +113,17 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == AND:
             self.reg[reg_a] &= self.reg[reg_b]
+        elif op == CMP:
+            # Compare the values in two registers. (FL = 00000LGE)
+            # If they are equal, set the Equal E flag to 1, otherwise set it to 0.
+            if self.reg[reg_a] == self.reg[reg_b]:
+                self.fl = 0b00000001
+            # If registerA is less than registerB, set the Less-than L flag to 1, otherwise set it to 0.
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                self.fl = 0b00000100
+            # If registerA is greater than registerB, set the Greater-than G flag to 1, otherwise set it to 0.
+            else:
+                self.fl = 0b00000010
         elif op == DEC:
             self.reg[reg_a] -= 1
         elif op == DIV:
@@ -156,7 +167,7 @@ class CPU:
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            # self.fl,
+            self.fl,
             # self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
@@ -182,9 +193,27 @@ class CPU:
         # exit the loop (no matter what comes next)
         self.running = False
 
+    def op_jeq(self, operand_a, operand_b):
+        # If equal flag is set (true), jump to the address stored in the given register.
+        equalFL = self.fl & 0b00000001
+        if equalFL == 1:
+            # set the PC to the address stored in the given register
+            self.op_jmp(operand_a, operand_b)
+        else:
+            self.pc += 2
+
     def op_jmp(self, operand_a, operand_b):
         # set the PC to the address stored in the given register
         self.pc = self.reg[operand_a]
+
+    def op_jne(self, operand_a, operand_b):
+        # If E flag is clear (false, 0), jump to the address stored in the given register.
+        equalFL = self.fl & 0b00000001
+        if equalFL == 0:
+            # set the PC to the address stored in the given register
+            self.op_jmp(operand_a, operand_b)
+        else:
+            self.pc += 2
 
     def op_ldi(self, operand_a, operand_b):
         # load "immediate", store a value in a register, or "set this register to this value"
